@@ -28,3 +28,6 @@ envs/curobo/*
 
 /*.json*
 /*.txt
+
+SceneRecon2/outputs/
+pytorch3d/

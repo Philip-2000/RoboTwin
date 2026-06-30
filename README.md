@@ -1,176 +1,397 @@
-<h1 align="center">
-  <a href="https://robotwin-benchmark.github.io"><b>RoboTwin</b> Bimanual Robotic Manipulation Platform<br></a>
-</h1>
-<h2 align="center">Lastest Version: RoboTwin 2.0<br>🤲 <a href="https://robotwin-platform.github.io/">Webpage</a> | <a href="https://robotwin-platform.github.io/doc/">Document</a> | <a href="https://arxiv.org/abs/2506.18088">Paper</a> | <a href="https://robotwin-platform.github.io/doc/community/index.html">Community</a> | <a href="https://robotwin-platform.github.io/leaderboard">Leaderboard</a></h2>
+# SceneRecon2 标注复现指南
 
-https://private-user-images.githubusercontent.com/88101805/463126988-e3ba1575-4411-4a36-ad65-f0b2f49890c3.mp4
+这份文档用于让其他人在自己的 Python/Conda 环境中复现当前的
+WorldArena / RoboTwin2.0 场景还原标注流程。当前流程的核心是：
 
-**[2.0 Version (lastest)]** RoboTwin 2.0: A Scalable Data Generator and Benchmark with Strong Domain Randomization for Robust Bimanual Robotic Manipulation<br>
-<i>Under Review 2025</i>: [Webpage](https://robotwin-platform.github.io/) | [Document](https://robotwin-platform.github.io/doc) | [PDF](https://arxiv.org/pdf/2506.18088) | [arXiv](https://arxiv.org/abs/2506.18088) | [Talk (in Chinese)](https://www.bilibili.com/video/BV18p3izYE63/?spm_id_from=333.337.search-card.all.click) | [机器之心](https://mp.weixin.qq.com/s/SwORezmol2Qd9YdrGYchEA) | [Leaderboard](https://robotwin-platform.github.io/leaderboard)<br>
-> <a href="https://tianxingchen.github.io/">Tianxing Chen</a><sup>\*</sup>, Zanxin Chen<sup>\*</sup>, Baijun Chen<sup>\*</sup>, Zijian Cai<sup>\*</sup>, <a href="https://10-oasis-01.github.io">Yibin Liu</a><sup>\*</sup>, <a href="https://kolakivy.github.io/">Qiwei Liang</a>, Zixuan Li, Xianliang Lin, <a href="https://geyiheng.github.io">Yiheng Ge</a>, Zhenyu Gu, Weiliang Deng, Yubin Guo, Tian Nian, Xuanbing Xie, <a href="https://www.linkedin.com/in/yusen-qin-5b23345b/">Qiangyu Chen</a>, Kailun Su, Tianling Xu, <a href="http://luoping.me/">Guodong Liu</a>, <a href="https://aaron617.github.io/">Mengkang Hu</a>, <a href="https://c7w.tech/about">Huan-ang Gao</a>, Kaixuan Wang, <a href="https://liang-zx.github.io/">Zhixuan Liang</a>, <a href="https://www.linkedin.com/in/yusen-qin-5b23345b/">Yusen Qin</a>, Xiaokang Yang, <a href="http://luoping.me/">Ping Luo</a><sup>†</sup>, <a href="https://yaomarkmu.github.io/">Yao Mu</a><sup>†</sup>
+1. 用 RoboTwin/SAPIEN 渲染一个可编辑的静态场景。
+2. 用 task-specific initializer 给出初始物体模型、位置、朝向和相机。
+3. 人工在浏览器里微调并保存 reconstruction state。
+4. 后续再把保存出的场景接到机械臂动作 replay、物理仿真和视频渲染。
 
-**[RoboTwin Dual-Arm Collaboration Challenge@CVPR'25 MEIS Workshop]** RoboTwin Dual-Arm Collaboration Challenge Technical Report at CVPR 2025 MEIS Workshop<br>
-Official Technical Report: [PDF](https://arxiv.org/pdf/2506.23351) | [arXiv](https://arxiv.org/abs/2506.23351) | [量子位](https://mp.weixin.qq.com/s/qxqs9vvvHsAJ-0hoYANYzQ)<br>
+当前 SceneRecon2 的人工标注状态和 initializer 状态是分开保存的。人工保存
+结果是最终标注进度的依据，initializer 只是起点。
 
-**[1.0 Version]** RoboTwin: Dual-Arm Robot Benchmark with Generative Digital Twins<br>
-Accepted to <i style="color: red; display: inline;"><b>CVPR 2025 (Highlight)</b></i>: [PDF](https://arxiv.org/pdf/2504.13059) | [arXiv](https://arxiv.org/abs/2504.13059)<br>
-> <a href="https://yaomarkmu.github.io/">Yao Mu</a><sup>* †</sup>, <a href="https://tianxingchen.github.io">Tianxing Chen</a><sup>* </sup>, Zanxin Chen<sup>* </sup>, <a href="https://shijiapeng03.github.io">Shijia Peng</a><sup>* </sup>, Zhiqian Lan, Zeyu Gao, Zhixuan Liang, Qiaojun Yu, Yude Zou, Mingkun Xu, Lunkai Lin, Zhiqiang Xie, Mingyu Ding, <a href="http://luoping.me/">Ping Luo</a><sup>†</sup>.
+## 0. 获取代码仓库
 
-**[Early Version]** RoboTwin: Dual-Arm Robot Benchmark with Generative Digital Twins (early version)<br>
-Accepted to <i style="color: red; display: inline;"><b>ECCV Workshop 2024 (Best Paper Award)</b></i>: [PDF](https://arxiv.org/pdf/2409.02920) | [arXiv](https://arxiv.org/abs/2409.02920)<br>
-> <a href="https://yaomarkmu.github.io/">Yao Mu</a><sup>* †</sup>, <a href="https://tianxingchen.github.io">Tianxing Chen</a><sup>* </sup>, Shijia Peng<sup>*</sup>, Zanxin Chen<sup>*</sup>, Zeyu Gao, Zhiqian Lan, Yude Zou, Lunkai Lin, Zhiqiang Xie, <a href="http://luoping.me/">Ping Luo</a><sup>†</sup>.
+建议从 RoboTwin 原仓库 fork 到个人仓库，并保持仓库名不变：
 
-
-
-# 📚 Overview
-
-| Branch Name | Link |
-|-------------|------|
-| 2.0 Version Branch | [main](https://github.com/RoboTwin-Platform/RoboTwin/tree/main) (latest) |
-| IsaacLab-Arena Branch | [IsaacLab-Arena](https://github.com/RoboTwin-Platform/RoboTwin/tree/IsaacLab-Arena) |
-| RLinf Branch | [RLinf_support](https://github.com/RoboTwin-Platform/RoboTwin/tree/RLinf_support) |
-| WBCD 2026 Branch | [WBCD-2026](https://github.com/RoboTwin-Platform/RoboTwin/tree/WBCD-2026) |
-| 1.0 Version Branch | [1.0 Version](https://github.com/RoboTwin-Platform/RoboTwin/tree/RoboTwin-1.0) |
-| 1.0 Version Code Generation Branch | [1.0 Version GPT](https://github.com/RoboTwin-Platform/RoboTwin/tree/gpt) |
-| Early Version Branch | [Early Version](https://github.com/RoboTwin-Platform/RoboTwin/tree/early_version) |
-| 第十九届“挑战杯”人工智能专项赛分支 | [Challenge-Cup-2025](https://github.com/RoboTwin-Platform/RoboTwin/tree/Challenge-Cup-2025) |
-| CVPR 2025 Challenge Round 1 Branch | [CVPR-Challenge-2025-Round1](https://github.com/RoboTwin-Platform/RoboTwin/tree/CVPR-Challenge-2025-Round1) |
-| CVPR 2025 Challenge Round 2 Branch | [CVPR-Challenge-2025-Round2](https://github.com/RoboTwin-Platform/RoboTwin/tree/CVPR-Challenge-2025-Round2) |
-
-
-
-# 🐣 Update
-* **2026/03/03**, We release [RMBench](https://github.com/RoboTwin-Platform/RMBench), which is a memory-dependent manipulation benchmark built upon RoboTwin 2.0.
-* **2026/02/20**, Usage supported in <a href="https://github.com/starVLA/starVLA">StarVLA</a>, which is a user-friendly codebase for VLA development.
-* **2026/01/23**, We update IsaacLab-Arena and <a href="https://github.com/RLinf/RLinf">RLinf</a> support (contributed by RLinf team).
-* **2025/08/28**, We update the RoboTwin 2.0 Paper [PDF](https://arxiv.org/pdf/2506.18088).
-* **2025/08/25**, We fix ACT deployment code and update the [leaderboard](https://robotwin-platform.github.io/leaderboard).
-* **2025/08/06**, We release RoboTwin 2.0 Leaderboard: [leaderboard website](https://robotwin-platform.github.io/leaderboard).
-* **2025/07/23**, RoboTwin 2.0 received Outstanding Poster at ChinaSI 2025 (Ranking 1st).
-* **2025/07/19**, We Fix DP3 evaluation code error. We will update RoboTwin 2.0 paper next week.
-* **2025/07/09**, We update endpose control mode, please see [[RoboTwin Doc - Usage - Control Robot](https://robotwin-platform.github.io/doc/usage/control-robot.html)] for more details.
-* **2025/07/08**, We upload [Challenge-Cup-2025](https://github.com/RoboTwin-Platform/RoboTwin/tree/Challenge-Cup-2025) Branch (第十九届挑战杯分支).
-* **2025/07/02**, Fix Piper Wrist Bug [[issue](https://github.com/RoboTwin-Platform/RoboTwin/issues/104)]. Please redownload the embodiment asset.
-* **2025/07/01**, We release Technical Report of RoboTwin Dual-Arm Collaboration Challenge @ CVPR 2025 MEIS Workshop [[arXiv](https://arxiv.org/abs/2506.23351)] !
-* **2025/06/21**, We release RoboTwin 2.0 [[Webpage](https://robotwin-platform.github.io/)] !
-* **2025/04/11**, RoboTwin is seclected as <i>CVPR Highlight paper</i>!
-* **2025/02/27**, RoboTwin is accepted to <i>CVPR 2025</i> ! 
-* **2024/09/30**, RoboTwin (Early Version) received <i>the Best Paper Award  at the ECCV Workshop</i>!
-* **2024/09/20**, Officially released RoboTwin.
-
-# 🛠️ Installation
-
-See [RoboTwin 2.0 Document (Usage - Install & Download)](https://robotwin-platform.github.io/doc/usage/robotwin-install.html) for installation instructions. It takes about 20 minutes for installation.
-
-# 🤷‍♂️ Tasks Informations
-See [RoboTwin 2.0 Tasks Doc](https://robotwin-platform.github.io/doc/tasks/index.html) for more details.
-
-<p align="center">
-  <img src="./assets/files/50_tasks.gif" width="100%">
-</p>
-
-# 🧑🏻‍💻 Usage 
-
-## Document
-
-> Please Refer to [RoboTwin 2.0 Document (Usage)](https://robotwin-platform.github.io/doc/usage/index.html) for more details.
-
-## Data Collection
-We provide over 100,000 pre-collected trajectories as part of the open-source release [RoboTwin Dataset](https://huggingface.co/datasets/TianxingChen/RoboTwin2.0/tree/main/dataset).
-However, we strongly recommend users to perform data collection themselves due to the high configurability and diversity of task and embodiment setups.
-
-<img src="./assets/files/domain_randomization.png" alt="description" style="display: block; margin: auto; width: 100%;">
-
-## 1. Task Running and Data Collection
-Running the following command will first search for a random seed for the target collection quantity, and then replay the seed to collect data.
-
-```
-bash collect_data.sh ${task_name} ${task_config} ${gpu_id}
-# Example: bash collect_data.sh beat_block_hammer demo_randomized 0
+```bash
+git clone https://github.com/Philip-2000/RoboTwin.git
+cd RoboTwin
 ```
 
-## 2. Modify Task Config
-☝️ See [RoboTwin 2.0 Tasks Configurations Doc](https://robotwin-platform.github.io/doc/usage/configurations.html) for more details.
+如果机器上已经 clone 了 RoboTwin 原仓库，可以把 remote 切到个人 fork：
 
-# 🚴‍♂️ Policy Baselines
-## Policies Support
-[DP](https://robotwin-platform.github.io/doc/usage/DP.html), [ACT](https://robotwin-platform.github.io/doc/usage/ACT.html), [DP3](https://robotwin-platform.github.io/doc/usage/DP3.html), [RDT](https://robotwin-platform.github.io/doc/usage/RDT.html), [PI0](https://robotwin-platform.github.io/doc/usage/Pi0.html), [OpenVLA-oft](https://robotwin-platform.github.io/doc/usage/OpenVLA-oft.html)
-
-[TinyVLA](https://robotwin-platform.github.io/doc/usage/TinyVLA.html), [DexVLA](https://robotwin-platform.github.io/doc/usage/DexVLA.html) (Contributed by Media Group)
-
-[LLaVA-VLA](https://robotwin-platform.github.io/doc/usage/LLaVA-VLA.html) (Contributed by IRPN Lab, HKUST(GZ))
-
-[GO-1](https://robotwin-platform.github.io/doc/usage/GO1.html) (Contributed by GO-1 Team)
-
-Deploy Your Policy: [Guidance](https://robotwin-platform.github.io/doc/usage/deploy-your-policy.html)
-
-⏰ TODO: G3Flow, HybridVLA, SmolVLA, AVR, UniVLA
-
-# 🏄‍♂️ Experiment & LeaderBoard
-
-> We recommend that the RoboTwin Platform can be used to explore the following topics: 
-> 1. single - task fine - tuning capability
-> 2. visual robustness
-> 3. language diversity robustness (language condition)
-> 4. multi-tasks capability
-> 5. cross-embodiment performance
-
-The full leaderboard and setting can be found in: [https://robotwin-platform.github.io/leaderboard](https://robotwin-platform.github.io/leaderboard).
-
-# 💽 Pre-collected Large-scale Dataset
-
-Please refer to [RoboTwin 2.0 Dataset - Huggingface](https://huggingface.co/datasets/TianxingChen/RoboTwin2.0/tree/main/dataset).
-
-# 👍 Citations
-If you find our work useful, please consider citing:
-
-<b>RoboTwin 2.0</b>: A Scalable Data Generator and Benchmark with Strong Domain Randomization for Robust Bimanual Robotic Manipulation
-```
-@article{chen2025robotwin,
-  title={Robotwin 2.0: A scalable data generator and benchmark with strong domain randomization for robust bimanual robotic manipulation},
-  author={Chen, Tianxing and Chen, Zanxin and Chen, Baijun and Cai, Zijian and Liu, Yibin and Li, Zixuan and Liang, Qiwei and Lin, Xianliang and Ge, Yiheng and Gu, Zhenyu and others},
-  journal={arXiv preprint arXiv:2506.18088},
-  year={2025}
-}
+```bash
+git remote set-url origin https://github.com/Philip-2000/RoboTwin.git
+git remote -v
 ```
 
-<b>RoboTwin</b>: Dual-Arm Robot Benchmark with Generative Digital Twins, accepted to <i style="color: red; display: inline;"><b>CVPR 2025 (Highlight)</b></i>
-```
-@InProceedings{Mu_2025_CVPR,
-    author    = {Mu, Yao and Chen, Tianxing and Chen, Zanxin and Peng, Shijia and Lan, Zhiqian and Gao, Zeyu and Liang, Zhixuan and Yu, Qiaojun and Zou, Yude and Xu, Mingkun and Lin, Lunkai and Xie, Zhiqiang and Ding, Mingyu and Luo, Ping},
-    title     = {RoboTwin: Dual-Arm Robot Benchmark with Generative Digital Twins},
-    booktitle = {Proceedings of the Computer Vision and Pattern Recognition Conference (CVPR)},
-    month     = {June},
-    year      = {2025},
-    pages     = {27649-27660}
-}
+也可以保留官方仓库作为 upstream：
+
+```bash
+git remote add upstream https://github.com/RoboTwin-Platform/RoboTwin.git
 ```
 
-Benchmarking Generalizable Bimanual Manipulation: RoboTwin Dual-Arm Collaboration Challenge at CVPR 2025 MEIS Workshop
-```
-@article{chen2025benchmarking,
-  title={Benchmarking Generalizable Bimanual Manipulation: RoboTwin Dual-Arm Collaboration Challenge at CVPR 2025 MEIS Workshop},
-  author={Chen, Tianxing and Wang, Kaixuan and Yang, Zhaohui and Zhang, Yuhao and Chen, Zanxin and Chen, Baijun and Dong, Wanxi and Liu, Ziyuan and Chen, Dong and Yang, Tianshuo and others},
-  journal={arXiv preprint arXiv:2506.23351},
-  year={2025}
-}
+请确认使用的是包含 `SceneRecon2/` 修改的分支。如果不是默认分支，额外执行：
+
+```bash
+git checkout <branch-with-scenerecon2>
 ```
 
-<b>RoboTwin</b>: Dual-Arm Robot Benchmark with Generative Digital Twins (early version), accepted to <i style="color: red; display: inline;"><b>ECCV Workshop 2024 (Best Paper Award)</b></i>
+## 1. 安装 RoboTwin 环境
+
+推荐使用 Conda。下面假设 Miniconda 位于 `~/miniconda3`，环境名为
+`RoboTwin`。
+
+```bash
+source ~/miniconda3/etc/profile.d/conda.sh
+conda create -n RoboTwin python=3.10 -y
+conda activate RoboTwin
 ```
-@article{mu2024robotwin,
-  title={RoboTwin: Dual-Arm Robot Benchmark with Generative Digital Twins (early version)},
-  author={Mu, Yao and Chen, Tianxing and Peng, Shijia and Chen, Zanxin and Gao, Zeyu and Zou, Yude and Lin, Lunkai and Xie, Zhiqiang and Luo, Ping},
-  journal={arXiv preprint arXiv:2409.02920},
-  year={2024}
-}
+
+安装 RoboTwin 基础依赖：
+
+```bash
+pip install -r script/requirements.txt
 ```
 
-# 😺 Acknowledgement
+安装 PyTorch3D。若 GitHub 访问正常，可以直接：
 
-**Software Support**: D-Robotics, **Hardware Support**: AgileX Robotics, **AIGC Support**: Deemos.
+```bash
+pip install "git+https://github.com/facebookresearch/pytorch3d.git@stable" --no-build-isolation
+```
 
-Contact [Tianxing Chen](https://tianxingchen.github.io) if you have any questions or suggestions.
+若 GitHub 很慢，建议先在网络更好的机器上下载源码或 wheel，再拷贝到目标机器
+安装。本仓库内也可能已经有 `pytorch3d/` 目录，可以根据本机 CUDA/PyTorch 版本
+改用本地安装方式。
 
-# 🏷️ License
-This repository is released under the MIT license. See [LICENSE](./LICENSE) for additional details.
+安装 Curobo。官方脚本默认从 GitHub clone：
+
+```bash
+cd envs
+git clone --branch v0.7.8 --depth 1 https://github.com/NVlabs/curobo.git
+cd curobo
+pip install -e . --no-build-isolation
+pip install warp-lang==1.12.0
+pip install setuptools==69.5.1
+cd ../..
+```
+
+如果目标机器访问 GitHub 很慢，可以在另一台机器下载 `NVlabs/curobo`
+的 `v0.7.8` 分支，然后把目录拷贝为：
+
+```text
+<RoboTwin repo>/envs/curobo
+```
+
+再执行上面的 `pip install -e .`。
+
+RoboTwin 的安装脚本还会 patch `sapien` 和 `mplib` 的若干兼容性问题。可以直接
+执行：
+
+```bash
+bash script/_install.sh
+```
+
+如果已经手动安装了依赖，至少要确认 `script/_install.sh` 中对
+`sapien/wrapper/urdf_loader.py` 和 `mplib/planner.py` 的 patch 已经生效。
+
+运行 SceneRecon2 前，建议设置 CUDA/Vulkan 环境变量。下面是当前机器上用过的
+配置，其他机器按实际 CUDA 路径调整：
+
+```bash
+source ~/miniconda3/etc/profile.d/conda.sh
+conda activate RoboTwin
+
+export CUDA_HOME=/usr/local/cuda-12.8
+export PATH=/usr/local/cuda-12.8/bin:$PATH
+export LD_LIBRARY_PATH=/usr/local/cuda-12.8/lib64:${LD_LIBRARY_PATH:-}
+export VK_ICD_FILENAMES=/etc/vulkan/icd.d/nvidia_icd.json
+export TORCH_CUDA_ARCH_LIST=12.0
+```
+
+## 2. 下载和配置 WorldArena 数据
+
+当前代码默认使用如下目录结构：
+
+```text
+~/D/WorldArena_Robotwin2.0/
+  test_dataset/
+    first_frame/fixed_scene_task/episode1.png
+    instructions/fixed_scene_task/episode1.json
+    data/fixed_scene_task/episode1.hdf5
+    ...
+  val_dataset/
+    first_frame/fixed_scene_task/episode1.png
+    instructions/fixed_scene_task/episode1.json
+    data/fixed_scene_task/episode1.hdf5
+    ...
+```
+
+其中标注服务当前主要使用：
+
+- `first_frame/fixed_scene_task/episodeN.png`：目标首帧图片。
+- `instructions/fixed_scene_task/episodeN.json`：语言指令和辅助信息。
+- `data/fixed_scene_task/episodeN.hdf5`：未来 replay 机械臂动作时会用到。
+
+另外还需要 WorldArena 的 task top1 匹配文件。当前默认路径是：
+
+```text
+~/C/WorldArena/yl_outputs/search_gt/
+  worldarena_test_to_robotwin_clean50_ollama_task_gttrace_top10.json
+  worldarena_val_to_robotwin_clean50_ollama_task_gttrace_top10.json
+```
+
+代码入口在 `SceneRecon/task_mapping.py`：
+
+```python
+default_search_gt_path("test_dataset")
+default_search_gt_path("val_dataset")
+```
+
+如果数据不放在上述位置，有两种做法：
+
+1. 推荐复现时先保持同样的目录结构。
+2. 或者修改 `SceneRecon/task_mapping.py` 和
+   `SceneRecon2/precompute_initializers.py` 中的默认路径。
+
+放好数据后可以先做两个检查：
+
+```bash
+ls ~/D/WorldArena_Robotwin2.0/test_dataset/first_frame/fixed_scene_task/episode1.png
+ls ~/D/WorldArena_Robotwin2.0/test_dataset/instructions/fixed_scene_task/episode1.json
+ls ~/C/WorldArena/yl_outputs/search_gt/worldarena_test_to_robotwin_clean50_ollama_task_gttrace_top10.json
+```
+
+## 3. 运行标注服务和执行标注
+
+先离线预计算 initializer。默认会对当前支持的所有 task 执行初始化：
+
+```bash
+source ~/miniconda3/etc/profile.d/conda.sh
+conda activate RoboTwin
+
+python -m SceneRecon2.precompute_initializers --split test_dataset --overwrite
+```
+
+只跑部分 task 时：
+
+```bash
+python -m SceneRecon2.precompute_initializers \
+  --split test_dataset \
+  --tasks adjust_bottle press_stapler place_empty_cup \
+  --overwrite
+```
+
+initializer 输出位置：
+
+```text
+SceneRecon2/outputs/place_empty_cup_editor/initializer_states/test_dataset/
+```
+
+人工标注输出位置：
+
+```text
+SceneRecon2/outputs/place_empty_cup_editor/states/test_dataset/
+```
+
+启动浏览器标注服务：
+
+```bash
+source ~/miniconda3/etc/profile.d/conda.sh
+conda activate RoboTwin
+
+export CUDA_HOME=/usr/local/cuda-12.8
+export PATH=/usr/local/cuda-12.8/bin:$PATH
+export LD_LIBRARY_PATH=/usr/local/cuda-12.8/lib64:${LD_LIBRARY_PATH:-}
+export VK_ICD_FILENAMES=/etc/vulkan/icd.d/nvidia_icd.json
+export TORCH_CUDA_ARCH_LIST=12.0
+
+python -m SceneRecon2.place_empty_cup_editor --host 127.0.0.1 --port 8788
+```
+
+本机浏览器打开：
+
+```text
+http://127.0.0.1:8788
+```
+
+远程机器上运行服务时，建议用 SSH 端口转发：
+
+```bash
+ssh -L 8788:127.0.0.1:8788 <user>@<host>
+```
+
+然后在本地浏览器打开 `http://127.0.0.1:8788`。
+
+常用页面：
+
+```text
+/progress                         人工保存进度
+/progress_initializer             initializer 预计算进度
+/task/<task>                      某个 task 的 episode 列表
+/task/<task>/<episode_number>     指定 task 和 episode
+/<episode_number>                 只知道数字时，自动跳转到对应 task
+```
+
+例如：
+
+```text
+http://127.0.0.1:8788/task/adjust_bottle/273
+http://127.0.0.1:8788/890
+```
+
+如果页面打不开，先检查服务是否在线：
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8788/progress
+curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8788/progress_initializer
+```
+
+重启服务：
+
+```bash
+pkill -f 'SceneRecon2.place_empty_cup_editor' || true
+python -m SceneRecon2.place_empty_cup_editor --host 127.0.0.1 --port 8788
+```
+
+### 标注操作
+
+快捷键的权威说明在：
+
+```text
+SceneRecon2/docs/editor_controls.md
+```
+
+当前主要操作如下：
+
+- `1`-`9`：按对象栏编号选择物体。
+- `Tab`：切换当前可编辑物体。
+- `C`：切换到相机编辑。
+- 方向键或 `W/A/S/D`：移动当前物体；相机模式下移动相机。
+- 按住 `Z`：细调。
+- 按住 `X`：粗调。
+- 不按 `Z/X`：正常步长。
+- `Q` / `E`：旋转当前物体 yaw；相机模式下调整 pitch。
+- `,` / `.`：切换当前物体的上一/下一候选模型。
+- 按住 `Space`：右侧 current render 临时显示目标首帧，用于对比。
+- 松开 `Space`：恢复当前渲染。
+- `Enter`：保存人工标注。
+- `+`：跳到当前 task 的下一个未完成人工标注 episode。
+- `-`：跳到当前 task 的上一个未完成人工标注 episode。
+
+人工保存后，状态文件会写入：
+
+```text
+SceneRecon2/outputs/place_empty_cup_editor/states/test_dataset/episodeN.<task>.json
+```
+
+页面上 `Current Render` 后面的状态含义：
+
+- `saved` / 上一次人工保存的：当前加载自人工保存状态。
+- `initializer` / Initializer 跑出来的：当前加载自离线 initializer。
+- `dirty` / 修改中：当前状态已经被手动改过，还没有保存。
+
+## 4. 初始化场景很糟糕时，如何让 Codex 优化
+
+不要直接让 Codex 随手改某一个人工保存文件，除非这是明确的个例修补。更推荐让
+Codex 优化 task-specific initializer，这样同类 episode 会一起受益。
+
+一次好的指令应包含：
+
+1. task 名。
+2. 具体 episode 编号。
+3. 目标首帧路径或页面 URL。
+4. 当前错误现象：模型错、颜色错、朝向错、悬空、相机不对、物体缺失等。
+5. 希望优先改规则，只有不可规则化时才加 episode override。
+6. 要求重跑 affected task 的 initializer，并抽样检查 before/after。
+
+可以直接套用这个模板：
+
+```text
+请优化 SceneRecon2 的 <task> 初始化。样例是 episode273、episode486，
+页面是 http://127.0.0.1:8788/task/<task>/273。
+
+现象：目标图里应该是雪碧，但 initializer 选成了可乐；另外瓶子的 yaw
+和参考图差约 90 度。请检查：
+1. first_frame 图片；
+2. instructions JSON；
+3. envs/<task>.py 中 RoboTwin 原始随机逻辑；
+4. SceneRecon2/initializers/simple_tasks.py；
+5. SceneRecon2/initializers/model_selector.py；
+6. initializer_states 和 debug 图。
+
+优先写 task-specific 规则，不要直接修改人工 states。改完后重跑这个 task
+的 initializer，给我几个 episode 的对照结果和需要人工复核的编号。
+```
+
+常见优化方向：
+
+- 模型选择：在 `SceneRecon2/initializers/model_selector.py` 或 task initializer
+  中加入颜色、形状、文字图案、候选模型 ID 规则。
+- 位置初始化：从检测框或颜色分割结果反投影到桌面 `x/y`，再写入对象
+  `table_xy`。
+- 朝向初始化：根据细长物体的主方向、瓶身方向、订书机头尾方向等设置
+  `yaw_deg` 或 `qpos`。
+- 高度问题：检查该 task 的桌面高度、物体 `z`、模型本身坐标原点以及是否误把
+  站立/躺倒姿态混用。
+- 分类错误：修改 top1 mapping 源文件，或对明确分错的 episode 加映射修正。
+
+优化完成后，常用重跑命令：
+
+```bash
+python -m SceneRecon2.precompute_initializers \
+  --split test_dataset \
+  --tasks <task> \
+  --overwrite
+```
+
+然后刷新：
+
+```text
+http://127.0.0.1:8788/progress_initializer
+http://127.0.0.1:8788/task/<task>
+```
+
+## 5. 未来：利用还原场景和机械臂动作做仿真渲染
+
+这一段目前是待定流程，不是稳定入口。目标是把人工保存出的场景状态和
+WorldArena 的 HDF5 机械臂动作结合起来，重新执行物理仿真并渲染视频。
+
+计划中的输入：
+
+```text
+SceneRecon2/outputs/place_empty_cup_editor/states/test_dataset/episodeN.<task>.json
+~/D/WorldArena_Robotwin2.0/test_dataset/data/fixed_scene_task/episodeN.hdf5
+```
+
+计划中的过程：
+
+1. 读取人工 reconstruction state，创建 RoboTwin/SAPIEN 场景。
+2. 根据 state 放置物体模型、桌面、相机和必要的 task-specific 元素。
+3. 读取 HDF5 中的双臂关节动作序列。通常是按顺序存储的 `T x (7+7)`
+   关节信号，文件本身主要提供顺序，不直接保存高层动作段语义。
+4. 用正确的机器人初始姿态和动作顺序逐帧驱动机械臂。
+5. 以 24 FPS 渲染视频。
+6. 将渲染首帧、过程视频和 WorldArena 原始 first frame / reference video 做对比。
+
+相关探索脚本曾经包括：
+
+```text
+script/render_joint_video.py
+script/reconstruct_traj_from_hdf5.py
+script/replay_robotwin_dataset.py
+```
+
+但 SceneRecon2 标注服务当前是静态、无物理的摆放编辑器。完整 replay/export
+链路应在未来单独固化，避免和人工标注服务混在一起。
+
+## 维护约定
+
+- 修改快捷键时，同步更新 `SceneRecon2/docs/editor_controls.md`。
+- 修改复现流程时，同步更新本文档。
+- initializer 自动结果放在 `initializer_states/`。
+- 人工保存结果放在 `states/`，人工保存结果才算 progress finished。
+- 尽量把 task-specific 策略放在 `SceneRecon2/initializers/` 下，不要污染
+  RoboTwin 原始 `envs/` 文件，除非确实是在修 RoboTwin 本身的问题。
