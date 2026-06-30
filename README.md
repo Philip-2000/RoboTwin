@@ -113,7 +113,7 @@ export TORCH_CUDA_ARCH_LIST=12.0
 
 ## 2. 下载和配置 WorldArena 数据
 
-当前代码默认使用如下目录结构：
+从<a href="https://hf-mirror.com/datasets/WorldArena/WorldArena_Robotwin2.0">这里</a>下载数据。当前代码默认使用如下目录结构：
 
 ```text
 ~/D/WorldArena_Robotwin2.0/
